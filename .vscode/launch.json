@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "AppWhile",
+            "request": "launch",
+            "mainClass": "AppWhile",
+            "projectName": "test vscode_2eb18eb0"
+        },
+        {
+            "type": "java",
+            "name": "GestioneConto",
+            "request": "launch",
+            "mainClass": "GestioneConto",
+            "projectName": "test vscode_2eb18eb0"
+        },
+        {
+            "type": "java",
+            "name": "ContoCorrente",
+            "request": "launch",
+            "mainClass": "ContoCorrente",
+            "projectName": "test vscode_2eb18eb0"
+        },
+        {
+            "type": "java",
+            "name": "contoArrayList",
+            "request": "launch",
+            "mainClass": "contoArrayList",
+            "projectName": "test vscode_2eb18eb0"
+        }
+    ]
+}
