@@ -1,13 +1,24 @@
+package hello;
+
 import java.io.File;
 import java.io.FileWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class contoArrayList {
+public class GestioneConto {
     static ArrayList<Float> movimenti = new ArrayList<Float>();
-    static String contoCorrente = "";
+    // formato data standard mondiale "2024-02-22 12:00:00"
+    static ArrayList<String> datemovimenti = new ArrayList<String>();
 
-    public static void main(String[] args) { // config do menu
+    static ArrayList<Movimento> listaMovimenti = new ArrayList<>();
+    
+    static String contoCorrente = "";
+    static Util helper = new Util();
+        
+
+    public static void main(String[] args) {
         Scanner readMenu = new Scanner(System.in);
         setContoCorrente();
         leggiCC();
@@ -31,7 +42,7 @@ public class contoArrayList {
         readMenu.close();
     }
 
-    static void setContoCorrente() { // historico da conta corrente
+    static void setContoCorrente() {
         Scanner readCC = new Scanner(System.in);
         String cc = "";
         while (true) {
@@ -46,7 +57,7 @@ public class contoArrayList {
         contoCorrente = cc;
     }
 
-    public static float chiediFloat(String domanda) { // cancelamento de operacao
+    public static float chiediFloat(String domanda) {
         float ris = 0;
         while (true) {
             Scanner getFloat = new Scanner(System.in);
@@ -62,14 +73,14 @@ public class contoArrayList {
         return ris;
     }
 
-    public static void printMenu() { // menu de entrada
+    public static void printMenu() {
         System.out.println("\n           --- MENU  BANCA ---");
         System.out.println("[S] saldo attuale   --- [L] lista movimenti");
         System.out.println("[V] versamento      --- [P] prelievo");
         System.out.println("[E] termina esci");
     }
 
-    private static void insPrelievo() { // remover dinheiro
+    private static void insPrelievo() {
         float prelievo = chiediFloat("ins importo versamento");
         if (prelievo < 0) {
             System.out.println("importo non valido!");
@@ -83,12 +94,26 @@ public class contoArrayList {
             System.out.println("credito insufficiente");
             return;
         }
+        // pronti per inserire prelievo in movimenti
+        // creo una data e la inserisco in datemovimenti
+        LocalDateTime dateTime = LocalDateTime.now();
+        // creo un formattatore dtf
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // creo testo da data con formattatore
+        String txData = dateTime.format(dtf);
+        datemovimenti.add(txData);
         movimenti.add(-prelievo);
+        // creo un nuovo oggetto di tipo movimento e lo add a listamovimenti
+        Movimento mov = new Movimento();
+        mov.data=dateTime;
+        mov.txdata=txData;
+        mov.importo=-prelievo;
+        listaMovimenti.add(mov);
         aggiornaCC();
         System.out.println("prelievo effettuato grazie!");
     }
 
-    private static void insVersamento() { // adicionar dinheiro
+    private static void insVersamento() {
         float versamento = chiediFloat("Ins. importo da VERSARE [es: 123.50]");
         if (versamento < 0) {
             System.out.println("importo non valido!");
@@ -98,61 +123,90 @@ public class contoArrayList {
             System.out.println("operazione annullata!");
             return;
         }
+        // creo una data e la inserisco in datemovimenti
+        LocalDateTime dateTime = LocalDateTime.now();
+        // creo un formattatore dtf
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // creo testo da data con formattatore
+        String txData = dateTime.format(dtf);
+        datemovimenti.add(txData);
         movimenti.add(versamento);
+        Movimento mov = new Movimento();
+        mov.data=dateTime;
+        mov.txdata=txData;
+        mov.importo=versamento;
+        listaMovimenti.add(mov);
+        
         aggiornaCC();
         System.out.println("versamento effettuato grazie!");
 
     }
 
-        static void leggiCC(){ // leitor da conta corrente
-            try {
-            File f = new File(contoCorrente + ".txt");
+    static void leggiCC() {
+        try {
+            File f = new File(contoCorrente + ".csv");
             Scanner readMov = new Scanner(f);
             movimenti.clear();
-            while(readMov.hasNextLine()){
-                String newmov = readMov.nextLine();
-                float importo = Float.parseFloat(newmov);
+            datemovimenti.clear();
+            String newmov = readMov.nextLine();
+            while (readMov.hasNextLine()) {
+                newmov = readMov.nextLine();
+                // es newmov e'  "123.00,2024-02-02 12:00:00"
+                // miserve un array ["123.00","2024-02-02 12:00:00"]
+                String[] itemsMov=newmov.split(",");
+                float importo = Float.parseFloat(itemsMov[0]);
                 movimenti.add(importo);
+                datemovimenti.add(itemsMov[1]);
             }
-            }
-            catch(Exception e){
-                System.out.println("errore nel caricamento dati");
-                movimenti.clear();
-            }   
-        }
 
-    static void aggiornaCC() { // criacao da conta corrente
-        String txfile=""    ;
-        for(float mov :movimenti){
-            txfile= txfile + mov + "\n";
-
-        }
-        try {
-            FileWriter fw = new FileWriter(contoCorrente + ".txt");
-            fw.write(txfile);
-            fw.close();
-        }
-        catch(Exception err){
-            System.out.println("impossibile creare il file");
+        } catch (Exception e) {
+            System.out.println("errore nel carimento dati");
+            movimenti.clear();
         }
     }
 
-    private static void getListaMovimenti() { // lista de movimentos feitos
+    static void aggiornaCC() {
+        String txfile = new Movimento().getHeadCSV();
+        for (Movimento mov : listaMovimenti)
+            txfile+=mov.getRigaCSV();
+        helper.salvaFileTesto(contoCorrente+".csv", txfile);
+
+        /*
+        int i = 0;
+        for (float mov : movimenti) {
+            String data = datemovimenti.get(i);
+            // txfile = txfile + mov + "\n";
+            txfile += mov + "," + data + "\n";
+            i++;
+        }
+        
+
+        try {
+            FileWriter fw = new FileWriter(contoCorrente + ".csv");
+            fw.write(txfile);
+            fw.close();
+        } catch (Exception err) {
+            System.out.println("impossibile creare il file");
+        }
+        */
+    }
+
+    private static void getListaMovimenti() {
         System.out.println("Lista movimenti: ");
         int i = 1;
         for (float mov : movimenti) {
-            String riga = i + ") " + mov;
+            String riga = i + ") " + mov +" - il " + datemovimenti.get(i-1) ;
             System.out.println(riga);
             i++;
         }
         getSaldo();
     }
 
-    private static void getSaldo() { // saldo da conta
-        System.out.println("Il tuo saldo corrente e' £: " + getSaldoValue());
+    private static void getSaldo() {
+        System.out.println("Il tuo saldo corrente e' €" + getSaldoValue());
     }
 
-    private static float getSaldoValue() { // variavel para saldo
+    private static float getSaldoValue() {
         // fare ciclo for che scorra uno per uno tutt i movimenti sommandoli
         float saldo = 0;
         // scorro tutto movimenti e aggiungo uno per uno i valori che trovo
