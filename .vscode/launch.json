@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "BiblioAsilo",
+            "request": "launch",
+            "mainClass": "hello.BiblioAsilo",
+            "projectName": "test vscode_2eb18eb0"
+        },
+        {
+            "type": "java",
             "name": "AppWhile",
             "request": "launch",
             "mainClass": "AppWhile",
